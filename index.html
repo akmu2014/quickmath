@@ -1,0 +1,807 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Math Quiz (Vertical)</title>
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: system-ui, -apple-system, Arial, sans-serif;
+      background: #0b0f1a;
+      color: #fff;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .app {
+      min-height: 100vh;
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 16px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .topbar { display: flex; gap: 10px; }
+
+    .pill {
+      flex: 1;
+      text-align: center;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    /* Vertical math layout */
+    .question {
+      margin: 0;
+      font-weight: 900;
+      letter-spacing: 0.2px;
+    }
+
+    .vertMath {
+      display: inline-block;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-weight: 900;
+      font-size: 28px;
+      line-height: 1.12;
+      text-align: right;
+      min-width: 8ch;
+      user-select: none;
+    }
+    .vertMath .r {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.8ch;
+    }
+    .vertMath .op {
+      width: 1ch;
+      text-align: center;
+    }
+    .vertMath .line {
+      border-top: 3px solid rgba(255,255,255,0.85);
+      margin: 6px 0 4px;
+    }
+    .vertMath .ans {
+      text-align: right;
+      opacity: 0.95;
+    }
+
+    .hint {
+      margin: 10px 0 0;
+      color: rgba(255,255,255,0.75);
+      font-size: 14px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .timerWrap {
+      margin-top: 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+      overflow: hidden;
+      height: 10px;
+    }
+    .timerBar {
+      height: 100%;
+      width: 100%;
+      background: rgba(255,255,255,0.55);
+      transform-origin: left center;
+      transform: scaleX(1);
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .choiceBtn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 16px;
+      border: 2px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+      font-weight: 900;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .choiceBtn:disabled { opacity: 0.95; cursor: default; }
+    .correct { border-color: #22c55e !important; }
+    .wrong   { border-color: #ef4444 !important; }
+
+    .restart {
+      width: 100%;
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.10);
+      color: #fff;
+      font-weight: 900;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .row { display: flex; gap: 10px; margin-top: 12px; }
+    .input {
+      flex: 1;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+    .btn {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      font-weight: 900;
+      font-size: 14px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn:disabled { opacity: 0.6; cursor: default; }
+
+    .boardTitle {
+      margin: 14px 0 6px;
+      font-weight: 900;
+      font-size: 14px;
+      color: rgba(255,255,255,0.85);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+    }
+    th, td {
+      padding: 10px 10px;
+      text-align: left;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+    }
+    th {
+      color: rgba(255,255,255,0.75);
+      font-weight: 900;
+      background: rgba(255,255,255,0.06);
+    }
+    tr:last-child td { border-bottom: none; }
+
+    .footer {
+      margin-top: auto;
+      text-align: center;
+      color: rgba(255,255,255,0.6);
+      font-size: 12px;
+      padding: 10px 0 6px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="pill" id="roundPill">Round 1 / 10</div>
+      <div class="pill" id="scorePill">Score: 0</div>
+    </div>
+
+    <div class="card">
+      <div class="question" id="questionText">Loading…</div>
+      <p class="hint" id="hintText">Tap an answer.</p>
+
+      <div class="timerWrap" aria-label="Timer">
+        <div class="timerBar" id="timerBar"></div>
+      </div>
+
+      <div class="choices" id="choicesArea"></div>
+
+      <!-- END SCREEN -->
+      <div id="endPanel" style="display:none;">
+        <div class="row">
+          <input id="nicknameInput" class="input" type="text" maxlength="20" placeholder="Enter nickname" />
+          <button id="submitNickBtn" class="btn">Submit</button>
+        </div>
+
+        <p class="hint" id="statsText" style="margin-top:10px;"></p>
+
+        <div class="boardTitle">Global Leaderboard</div>
+        <div id="leaderboardArea"></div>
+      </div>
+
+      <button class="restart" id="restartBtn" style="display:none;">Restart (New Set)</button>
+    </div>
+
+    <div class="footer">Leaderboard is global (Firestore) • scores update live</div>
+  </div>
+
+  <script type="module">
+    // =========================
+    // FIREBASE (Firestore)
+    // =========================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      query,
+      orderBy,
+      limit,
+      onSnapshot,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAWrRbmd1P5Xr015BuP-Z-uHOfPRpxSRyI",
+      authDomain: "akmu-akka.firebaseapp.com",
+      projectId: "akmu-akka",
+      storageBucket: "akmu-akka.firebasestorage.app",
+      messagingSenderId: "570363675866",
+      appId: "1:570363675866:web:ca33767f62750019e711e3",
+      measurementId: "G-5QJC8WLW90"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // =========================
+    // DEVICE + ATTEMPTS (per browser)
+    // =========================
+    const DEVICE_ID_KEY = "mathquiz_device_id";
+    const ATTEMPT_KEY   = "mathquiz_attempt_count";
+
+    function getDeviceId() {
+      let id = localStorage.getItem(DEVICE_ID_KEY);
+      if (!id) {
+        id = crypto.randomUUID();
+        localStorage.setItem(DEVICE_ID_KEY, id);
+      }
+      return id;
+    }
+
+    function incrementAttempt() {
+      let n = Number(localStorage.getItem(ATTEMPT_KEY) || 0);
+      n += 1;
+      localStorage.setItem(ATTEMPT_KEY, String(n));
+      return n;
+    }
+
+    function makeClaimCode() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      const part = (len) => Array.from({length: len}, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+      return `PRIZE-${part(4)}-${part(4)}`;
+    }
+
+    const deviceId = getDeviceId();
+    let lastAttemptNumber = 0;
+    let lastClaimCode = "";
+    let isPrizeEligible = false;
+
+    // =========================
+    // SETTINGS (UPDATED)
+    // =========================
+    const NUM_ROUNDS = 10;  // 10 total questions
+    const ADD_COUNT = 5;    // 5 additions
+    const SUB_COUNT = 5;    // 5 subtractions
+
+    const TIME_LIMIT_MS = 10000; // 10 seconds (was 5000)
+    const FEEDBACK_MS   = 650;
+    const TICK_MS       = 40;
+
+    const MIN_SAME_ONES_DIGIT_CHOICES = 3;
+
+    // Addition: 3-digit + 3-digit
+    const ADD_A_MIN = 100, ADD_A_MAX = 999;
+    const ADD_B_MIN = 100, ADD_B_MAX = 999;
+
+    // Subtraction: 3-digit - 2-digit
+    const SUB_A_MIN = 100, SUB_A_MAX = 999;
+    const SUB_B_MIN = 10,  SUB_B_MAX = 99;
+
+    const MAX_BOARD_ROWS = 25;
+
+    // =========================
+    // STATE
+    // =========================
+    let quiz = [];
+    let idx = 0;
+    let score = 0;
+
+    let roundStart = 0;
+    let timerInterval = null;
+    let timeoutHandle = null;
+    let locked = false;
+
+    let lastPct = 0;
+    let lastScoreText = "";
+
+    // =========================
+    // ELEMENTS
+    // =========================
+    const roundPill = document.getElementById("roundPill");
+    const scorePill = document.getElementById("scorePill");
+    const questionText = document.getElementById("questionText");
+    const hintText = document.getElementById("hintText");
+    const choicesArea = document.getElementById("choicesArea");
+    const restartBtn = document.getElementById("restartBtn");
+    const timerBar = document.getElementById("timerBar");
+
+    const endPanel = document.getElementById("endPanel");
+    const nicknameInput = document.getElementById("nicknameInput");
+    const submitNickBtn = document.getElementById("submitNickBtn");
+    const leaderboardArea = document.getElementById("leaderboardArea");
+    const statsText = document.getElementById("statsText");
+
+    // =========================
+    // UTIL
+    // =========================
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function shuffleInPlace(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function clearTimers() {
+      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+      if (timeoutHandle) { clearTimeout(timeoutHandle); timeoutHandle = null; }
+    }
+
+    function disableAllChoices() {
+      choicesArea.querySelectorAll("button").forEach(b => b.disabled = true);
+    }
+
+    function highlightCorrect(correctVal) {
+      choicesArea.querySelectorAll("button").forEach(b => {
+        if (Number(b.textContent) === correctVal) b.classList.add("correct");
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatDate(ts) {
+      const d = ts instanceof Date ? ts : new Date(ts);
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mi = String(d.getMinutes()).padStart(2, "0");
+      return `${mm}/${dd} ${hh}:${mi}`;
+    }
+
+    // Render vertical math in the question area
+    function renderVerticalMath(item) {
+      const a = String(item.a);
+      const b = String(item.b);
+      const w = Math.max(a.length, b.length);
+      const aPad = a.padStart(w, " ");
+      const bPad = b.padStart(w, " ");
+
+      const toNbsp = (s) => escapeHtml(s).replaceAll(" ", "&nbsp;");
+
+      return `
+        <div class="vertMath" aria-label="${escapeHtml(item.a)} ${escapeHtml(item.op)} ${escapeHtml(item.b)} equals what">
+          <div class="r"><span>${toNbsp(aPad)}</span></div>
+          <div class="r"><span class="op">${escapeHtml(item.op)}</span><span>${toNbsp(bPad)}</span></div>
+          <div class="line"></div>
+          <div class="ans">?</div>
+        </div>
+      `;
+    }
+
+    // =========================
+    // DISTRACTORS (ANTI ONES-DIGIT CHEAT)
+    // =========================
+    function buildDistractors(correct) {
+      const targetOnes = ((correct % 10) + 10) % 10;
+      const needSame = Math.max(0, MIN_SAME_ONES_DIGIT_CHOICES - 1);
+
+      const chosen = new Set();
+
+      const tensSteps = [10,20,30,40,50,60,70,80,90,100,110,120,130,140,150];
+      while ([...chosen].filter(v => ((v % 10) + 10) % 10 === targetOnes).length < needSame) {
+        const step = tensSteps[randInt(0, tensSteps.length - 1)];
+        const sign = Math.random() < 0.5 ? -1 : 1;
+        let cand = correct + sign * step;
+        if (cand < 0) cand = correct + step;
+        if (cand !== correct) chosen.add(cand);
+        if (chosen.size > 60) break;
+      }
+
+      const nearOffsets = [-1,+1,-2,+2,-3,+3,-4,+4,-5,+5,-6,+6,-8,+8,-9,+9,-11,+11,-12,+12,-15,+15,-18,+18];
+      while (chosen.size < 3) {
+        const off = nearOffsets[randInt(0, nearOffsets.length - 1)];
+        let cand = correct + off;
+        if (cand < 0) cand = correct + Math.abs(off);
+        if (cand !== correct) chosen.add(cand);
+        if (chosen.size > 120) break;
+      }
+
+      let distractors = Array.from(chosen).slice(0, 3);
+
+      const totalSame = [correct, ...distractors].filter(v => ((v % 10) + 10) % 10 === targetOnes).length;
+      if (totalSame < MIN_SAME_ONES_DIGIT_CHOICES) {
+        for (let i = 0; i < distractors.length; i++) {
+          let v = distractors[i];
+          while (((v % 10) + 10) % 10 !== targetOnes) v += 10;
+          if (v !== correct && !distractors.includes(v)) {
+            distractors[i] = v;
+            break;
+          }
+        }
+      }
+
+      return distractors;
+    }
+
+    // =========================
+    // QUESTION GENERATORS
+    // =========================
+    function makeAddition(usedKeys) {
+      let a, b, key;
+      do {
+        a = randInt(ADD_A_MIN, ADD_A_MAX);
+        b = randInt(ADD_B_MIN, ADD_B_MAX);
+        const min = Math.min(a, b), max = Math.max(a, b);
+        key = `A:${min}+${max}`;
+      } while (usedKeys.has(key));
+      usedKeys.add(key);
+
+      const correct = a + b;
+      const choices = shuffleInPlace([correct, ...buildDistractors(correct)]);
+      return { op: "+", a, b, correct, choices };
+    }
+
+    function makeSubtraction(usedKeys) {
+      let a, b, key;
+      do {
+        a = randInt(SUB_A_MIN, SUB_A_MAX);
+        b = randInt(SUB_B_MIN, SUB_B_MAX);
+        key = `S:${a}-${b}`;
+      } while (usedKeys.has(key));
+      usedKeys.add(key);
+
+      const correct = a - b;
+      const choices = shuffleInPlace([correct, ...buildDistractors(correct)]);
+      return { op: "−", a, b, correct, choices };
+    }
+
+    function buildNewQuiz() {
+      const usedKeys = new Set();
+      const q = [];
+
+      for (let i = 0; i < ADD_COUNT; i++) q.push(makeAddition(usedKeys));
+      for (let i = 0; i < SUB_COUNT; i++) q.push(makeSubtraction(usedKeys));
+
+      shuffleInPlace(q);
+      q.forEach(item => shuffleInPlace(item.choices));
+      return q; // 10 questions total
+    }
+
+    // =========================
+    // TIMER
+    // =========================
+    function startTimer() {
+      clearTimers();
+      locked = false;
+
+      roundStart = performance.now();
+      timerBar.style.transform = "scaleX(1)";
+
+      timerInterval = setInterval(() => {
+        const elapsed = performance.now() - roundStart;
+        const remaining = Math.max(0, TIME_LIMIT_MS - elapsed);
+        timerBar.style.transform = `scaleX(${remaining / TIME_LIMIT_MS})`;
+        if (remaining <= 0) timerBar.style.transform = "scaleX(0)";
+      }, TICK_MS);
+
+      timeoutHandle = setTimeout(() => {
+        if (locked) return;
+        locked = true;
+
+        disableAllChoices();
+        const item = quiz[idx];
+        hintText.textContent = `Time’s up ❌ (Answer: ${item.correct})`;
+        highlightCorrect(item.correct);
+
+        clearTimers();
+        setTimeout(nextRound, FEEDBACK_MS);
+      }, TIME_LIMIT_MS);
+    }
+
+    // =========================
+    // FIRESTORE LEADERBOARD
+    // =========================
+    function renderBoardRows(rows) {
+      if (!rows || rows.length === 0) {
+        leaderboardArea.innerHTML = `<div class="hint" style="margin-top:6px;">No entries yet. Submit a nickname to start the list.</div>`;
+        return;
+      }
+
+      const html = `
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nickname</th>
+              <th>Score</th>
+              <th>When</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((r, i) => `
+              <tr>
+                <td>${i + 1}</td>
+                <td>${escapeHtml(r.nick)}</td>
+                <td>${r.pct}% (${r.correct}/${r.total})</td>
+                <td>${formatDate(r.ts)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+      leaderboardArea.innerHTML = html;
+    }
+
+    function watchLeaderboard() {
+      const scoresRef = collection(db, "scores");
+      const q = query(
+        scoresRef,
+        orderBy("pct", "desc"),
+        orderBy("ts", "desc"),
+        limit(MAX_BOARD_ROWS)
+      );
+
+      onSnapshot(q, (snap) => {
+        const rows = snap.docs.map(d => {
+          const data = d.data();
+          return {
+            nick: data.nick,
+            pct: data.pct,
+            correct: data.correct,
+            total: data.total,
+            ts: data.ts?.toDate ? data.ts.toDate() : new Date()
+          };
+        });
+
+        renderBoardRows(rows);
+
+        const avg = rows.length ? Math.round((rows.reduce((a,r)=>a+r.pct,0)/rows.length)*10)/10 : null;
+        if (avg !== null) {
+          if (!endPanel || endPanel.style.display === "none") {
+            statsText.textContent = `Average score (top ${rows.length}): ${avg}%.`;
+          }
+        } else {
+          if (!endPanel || endPanel.style.display === "none") {
+            statsText.textContent = `No saved scores yet.`;
+          }
+        }
+      }, (err) => {
+        console.error(err);
+        leaderboardArea.innerHTML = `<div class="hint" style="margin-top:6px;">Could not load leaderboard. Check Firestore rules.</div>`;
+      });
+    }
+
+    async function submitScoreToFirestore(nick, pct, correct, total, attempt, claimCode, prizeEligible) {
+      const cleanNick = String(nick).trim().slice(0, 20);
+      if (!cleanNick) return false;
+
+      await addDoc(collection(db, "scores"), {
+        nick: cleanNick,
+        pct,
+        correct,
+        total,
+        attempt,
+        deviceId,
+        prizeEligible,
+        claimCode: claimCode || "",
+        ts: serverTimestamp()
+      });
+
+      return true;
+    }
+
+    // =========================
+    // GAME FLOW
+    // =========================
+    function setPills() {
+      roundPill.textContent = `Round ${Math.min(idx + 1, quiz.length)} / ${quiz.length}`;
+      scorePill.textContent = `Score: ${score}`;
+    }
+
+    function showEndPanel(show) {
+      endPanel.style.display = show ? "block" : "none";
+    }
+
+    function renderQuestion() {
+      setPills();
+      restartBtn.style.display = "none";
+      showEndPanel(false);
+
+      const item = quiz[idx];
+      questionText.innerHTML = renderVerticalMath(item);
+      hintText.textContent = "Tap an answer (10 seconds).";
+
+      choicesArea.innerHTML = "";
+      item.choices.forEach((value) => {
+        const btn = document.createElement("button");
+        btn.className = "choiceBtn";
+        btn.textContent = value;
+        btn.addEventListener("click", () => handleAnswer(btn, value));
+        choicesArea.appendChild(btn);
+      });
+
+      startTimer();
+    }
+
+    function handleAnswer(clickedBtn, value) {
+      if (locked) return;
+      locked = true;
+
+      clearTimers();
+      disableAllChoices();
+
+      const item = quiz[idx];
+      const isCorrect = value === item.correct;
+
+      if (isCorrect) {
+        score += 1;
+        clickedBtn.classList.add("correct");
+        hintText.textContent = "Correct ✅";
+      } else {
+        clickedBtn.classList.add("wrong");
+        hintText.textContent = `Wrong ❌ (Answer: ${item.correct})`;
+        highlightCorrect(item.correct);
+      }
+
+      scorePill.textContent = `Score: ${score}`;
+      timerBar.style.transform = "scaleX(0)";
+
+      setTimeout(nextRound, FEEDBACK_MS);
+    }
+
+    function nextRound() {
+      idx += 1;
+      if (idx >= quiz.length) renderResult();
+      else renderQuestion();
+    }
+
+    function renderResult() {
+      clearTimers();
+      locked = true;
+
+      const total = quiz.length;
+      lastPct = Math.round((score / total) * 100);
+      lastScoreText = `${lastPct}% (${score}/${total})`;
+
+      lastAttemptNumber = incrementAttempt();
+
+      isPrizeEligible = (lastPct === 100 && lastAttemptNumber <= 3);
+      lastClaimCode = isPrizeEligible ? makeClaimCode() : "";
+
+      roundPill.textContent = "Finished";
+      scorePill.textContent = `Score: ${score}`;
+
+      questionText.innerHTML = `<div class="vertMath" style="min-width:auto;font-size:28px;">${escapeHtml(lastScoreText)}</div>`;
+
+      if (lastPct === 100) {
+        hintText.textContent = `You got 100% on attempt #${lastAttemptNumber}.`;
+      } else {
+        hintText.textContent = `Finished attempt #${lastAttemptNumber}. Try again for 100%!`;
+      }
+
+      choicesArea.innerHTML = "";
+      timerBar.style.transform = "scaleX(0)";
+
+      showEndPanel(true);
+      restartBtn.style.display = "block";
+
+      submitNickBtn.disabled = false;
+      nicknameInput.value = "";
+      nicknameInput.focus();
+
+      if (isPrizeEligible) {
+        statsText.textContent = `🎁 Prize eligible! Claim prize code: ${lastClaimCode}`;
+      } else if (lastPct === 100) {
+        statsText.textContent = `Not prize eligible (must be 100% within 3 attempts).`;
+      } else {
+        statsText.textContent = `Prize rule: 100% within 3 attempts.`;
+      }
+    }
+
+    function startNewRun() {
+      clearTimers();
+      quiz = buildNewQuiz();
+      idx = 0;
+      score = 0;
+      locked = false;
+
+      submitNickBtn.disabled = false;
+      showEndPanel(false);
+
+      renderQuestion();
+    }
+
+    submitNickBtn.addEventListener("click", async () => {
+      submitNickBtn.disabled = true;
+
+      try {
+        const ok = await submitScoreToFirestore(
+          nicknameInput.value,
+          Number(lastPct),
+          Number(score),
+          Number(quiz.length),
+          Number(lastAttemptNumber),
+          lastClaimCode,
+          Boolean(isPrizeEligible)
+        );
+
+        if (!ok) {
+          submitNickBtn.disabled = false;
+          hintText.textContent = "Please enter a nickname (1–20 characters).";
+          nicknameInput.focus();
+          return;
+        }
+
+        if (isPrizeEligible) {
+          hintText.textContent = `Saved: ${nicknameInput.value.trim()} — ${lastScoreText}. 🎁 Claim code: ${lastClaimCode}`;
+        } else if (lastPct === 100) {
+          hintText.textContent = `Saved: ${nicknameInput.value.trim()} — ${lastScoreText}. (Not eligible: attempt #${lastAttemptNumber})`;
+        } else {
+          hintText.textContent = `Saved: ${nicknameInput.value.trim()} — ${lastScoreText}`;
+        }
+
+      } catch (e) {
+        submitNickBtn.disabled = false;
+        hintText.textContent = "Could not save score. Check Firestore rules.";
+        console.error(e);
+      }
+    });
+
+    nicknameInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") submitNickBtn.click();
+    });
+
+    restartBtn.addEventListener("click", startNewRun);
+
+    watchLeaderboard();
+    startNewRun();
+  </script>
+</body>
+</html>
